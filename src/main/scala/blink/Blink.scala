@@ -4,39 +4,28 @@ package blink
 
 import chisel3._
 import chisel3.core.withClockAndReset
-import chisel3.experimental.RawModule
 import chisel3.util.Counter
 
 /**
   * Blink built-in LED.
   */
-class Blink extends RawModule {
-  val clock = IO(Input(Clock()))
-  override def desiredName = "top"
 
+class Blink extends Module {
   val io = IO(new Bundle {
     val led = Output(Bool())
   })
+  var CNT_MAX = 8388608
 
-  withClockAndReset(clock, false.B) {
-    val blinker = Module(new Blinker(16E6))
-    io.led := blinker.io.led
-  }
-}
-
-class Blinker(clocksBetweenToggle: Double) extends Module {
-  val io = IO(new Bundle {
-    val led = Output(Bool())
-  })
-
-  val counter = Counter(clocksBetweenToggle.toInt)
+  val counter = Counter(CNT_MAX)
   val blink_state = RegInit(0.U(1.W))
 
-  counter.inc()
-  when(counter.value === 0.U) {
-    blink_state := ~blink_state
+  withClockAndReset(clock, false.B) {
+    counter.inc()
+    when(counter.value === 0.U) {
+      blink_state := ~blink_state
+    }
+    io.led := blink_state
   }
-  io.led := blink_state
 }
 
 object Blink extends App {
