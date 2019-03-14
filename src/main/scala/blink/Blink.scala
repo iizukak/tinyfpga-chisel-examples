@@ -3,7 +3,6 @@
 // This file is based on under the repository
 // https://github.com/indyscala/chisel3
 //
-
 package blink
 
 import chisel3._
