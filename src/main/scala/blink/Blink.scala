@@ -1,4 +1,8 @@
 // See README.md for license details.
+//
+// This file is based on under the repository
+// https://github.com/indyscala/chisel3
+//
 
 package blink
 
@@ -10,26 +14,27 @@ import chisel3.util.Counter
 /**
   * Blink built-in LED.
   */
-class Blink extends RawModule {
+class BlinkRawModule extends RawModule {
   val clock = IO(Input(Clock()))
-  override def desiredName = "top"
+  override def desiredName:String = "top"
 
   val io = IO(new Bundle {
     val led = Output(Bool())
   })
 
   withClockAndReset(clock, false.B) {
-    val blinker = Module(new Blinker(16E6))
-    io.led := blinker.io.led
+    val blink_freq = 8388608
+    val blink_module = Module(new BlinkModule(blink_freq))
+    io.led := blink_module.io.led
   }
 }
 
-class Blinker(clocksBetweenToggle: Double) extends Module {
+class BlinkModule(clocksBetweenToggle: Int) extends Module {
   val io = IO(new Bundle {
     val led = Output(Bool())
   })
 
-  val counter = Counter(clocksBetweenToggle.toInt)
+  val counter = Counter(clocksBetweenToggle)
   val blink_state = RegInit(0.U(1.W))
 
   counter.inc()
@@ -40,5 +45,5 @@ class Blinker(clocksBetweenToggle: Double) extends Module {
 }
 
 object Blink extends App {
-  chisel3.Driver.execute(Array("--target-dir", "target/led"), () => new Blink)
+  chisel3.Driver.execute(Array("--target-dir", "target/led"), () => new BlinkRawModule)
 }
